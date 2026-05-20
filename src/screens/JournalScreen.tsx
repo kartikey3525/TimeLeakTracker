@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
+
 import { View, Text, TextInput, TouchableOpacity, Image } from 'react-native';
+
 import { launchImageLibrary } from 'react-native-image-picker';
+
 import { database } from '../db';
 
-const JournalScreen = ({ onDone }: any) => {
+const JournalScreen = ({ task, onDone }: any) => {
   const [text, setText] = useState('');
+
   const [image, setImage] = useState<string | null>(null);
 
   const pickImage = async () => {
@@ -22,15 +26,21 @@ const JournalScreen = ({ onDone }: any) => {
 
     await database.write(async () => {
       await database.get('journals').create((entry: any) => {
+        entry.task_id = task?.id || '';
+
+        entry.task_title = task?.title || '';
+
         entry.text = text;
+
         entry.image = image || '';
+
         entry.created_at = Date.now();
       });
     });
 
     onDone();
   };
-
+  console.log('TASK DATA', task);
   return (
     <View
       style={{
@@ -40,12 +50,28 @@ const JournalScreen = ({ onDone }: any) => {
         justifyContent: 'center',
       }}
     >
-      <Text style={{ color: '#fff', fontSize: 22, marginBottom: 20 }}>
-        Reflect your session
+      <Text
+        style={{
+          color: '#fff',
+          fontSize: 24,
+          fontWeight: '700',
+          marginBottom: 8,
+        }}
+      >
+        Session Reflection
+      </Text>
+
+      <Text
+        style={{
+          color: '#94A3B8',
+          marginBottom: 20,
+        }}
+      >
+        {task?.title}
       </Text>
 
       <TextInput
-        placeholder="How was your focus? (max 3 lines)"
+        placeholder="How was your focus session and what u have done in this task ?"
         placeholderTextColor="#64748B"
         value={text}
         onChangeText={setText}
@@ -54,10 +80,11 @@ const JournalScreen = ({ onDone }: any) => {
         style={{
           backgroundColor: '#1E293B',
           color: '#fff',
-          padding: 12,
-          borderRadius: 10,
-          height: 80,
+          padding: 14,
+          borderRadius: 14,
+          height: 100,
           marginBottom: 20,
+          textAlignVertical: 'top',
         }}
       />
 
@@ -65,18 +92,29 @@ const JournalScreen = ({ onDone }: any) => {
         onPress={pickImage}
         style={{
           backgroundColor: '#334155',
-          padding: 12,
-          borderRadius: 10,
-          marginBottom: 10,
+          padding: 14,
+          borderRadius: 14,
+          marginBottom: 16,
         }}
       >
-        <Text style={{ color: '#fff', textAlign: 'center' }}>Add Image</Text>
+        <Text
+          style={{
+            color: '#fff',
+            textAlign: 'center',
+          }}
+        >
+          Add Image
+        </Text>
       </TouchableOpacity>
 
       {image && (
         <Image
           source={{ uri: image }}
-          style={{ height: 150, borderRadius: 10, marginBottom: 10 }}
+          style={{
+            height: 180,
+            borderRadius: 14,
+            marginBottom: 16,
+          }}
         />
       )}
 
@@ -84,11 +122,19 @@ const JournalScreen = ({ onDone }: any) => {
         onPress={saveJournal}
         style={{
           backgroundColor: '#3B82F6',
-          padding: 14,
-          borderRadius: 10,
+          padding: 16,
+          borderRadius: 14,
         }}
       >
-        <Text style={{ color: '#fff', textAlign: 'center' }}>Save Journal</Text>
+        <Text
+          style={{
+            color: '#fff',
+            textAlign: 'center',
+            fontWeight: '700',
+          }}
+        >
+          Save Journal
+        </Text>
       </TouchableOpacity>
     </View>
   );

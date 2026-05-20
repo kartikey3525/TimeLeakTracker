@@ -8,66 +8,93 @@ type TaskState = {
   tasks: Task[];
 
   isFocusMode: boolean;
-  showJournal: boolean; // ✅ NEW
+
+  showJournal: boolean;
+  completedTask: Task | null;
 
   selectedSound: SoundType;
+
   setSound: (sound: SoundType) => void;
 
-  createNewTask: (title: string) => Task;
-  startTaskNow: (task: Task) => void;
+  createNewTask: (title: string) => void;
+
+  startTaskNow: (taskId: string) => void;
+
   endCurrentTask: () => void;
 
   enterFocusMode: () => void;
   exitFocusMode: () => void;
 
-  openJournal: () => void;
   closeJournal: () => void;
 };
 
 export const useTaskStore = create<TaskState>((set, get) => ({
   currentTask: null,
+
   tasks: [],
 
   isFocusMode: false,
+
   showJournal: false,
 
+  completedTask: null,
+
   selectedSound: 'rain',
+
   setSound: sound => set({ selectedSound: sound }),
 
   createNewTask: (title: string) => {
-    return createTask(title);
+    const task = createTask(title);
+
+    set({
+      tasks: [task, ...get().tasks],
+    });
   },
 
-  startTaskNow: (task: Task) => {
-    const updated = startTask(task);
+  startTaskNow: (taskId: string) => {
+    const tasks = get().tasks;
+
+    const found = tasks.find(t => t.id === taskId);
+
+    if (!found) return;
+
+    const updated = startTask(found);
 
     set({
       currentTask: updated,
-      tasks: [...get().tasks, updated],
+
+      isFocusMode: true,
+
+      tasks: tasks.map(t => (t.id === taskId ? updated : t)),
     });
   },
 
   endCurrentTask: () => {
-    const task = get().currentTask;
-    if (!task) return;
+    const activeTask = get().currentTask;
 
-    const updated = endTask(task);
+    if (!activeTask) return;
 
-    set({
+    const updated = endTask(activeTask);
+
+    set(state => ({
+      completedTask: updated,
+
+      showJournal: true,
+
       currentTask: null,
-      tasks: get().tasks.map(t => (t.id === updated.id ? updated : t)),
-    });
 
-    console.log('Trigger Journal Flow');
+      isFocusMode: false,
 
-    // ✅ TRIGGER JOURNAL HERE
-    set({ showJournal: true });
+      tasks: state.tasks.map(t => (t.id === updated.id ? updated : t)),
+    }));
   },
 
   enterFocusMode: () => set({ isFocusMode: true }),
 
   exitFocusMode: () => set({ isFocusMode: false }),
 
-  openJournal: () => set({ showJournal: true }),
-  closeJournal: () => set({ showJournal: false }),
+  closeJournal: () =>
+    set({
+      showJournal: false,
+    }),
 }));

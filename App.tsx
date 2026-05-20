@@ -10,7 +10,15 @@ import { useTaskStore } from './src/store/useTaskStore';
 import './src/db';
 
 const App = () => {
-  const { isFocusMode, showJournal, closeJournal } = useTaskStore();
+  const {
+    isFocusMode,
+
+    showJournal,
+
+    closeJournal,
+
+    completedTask,
+  } = useTaskStore();
 
   return (
     <SafeAreaProvider>
@@ -19,7 +27,7 @@ const App = () => {
       {isFocusMode ? (
         <FocusModeScreen />
       ) : showJournal ? (
-        <JournalScreen onDone={closeJournal} />
+        <JournalScreen task={completedTask} onDone={closeJournal} />
       ) : (
         <SafeAreaView style={styles.container}>
           <DashboardScreen />
